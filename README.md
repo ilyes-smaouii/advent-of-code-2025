@@ -18,3 +18,8 @@ Update : had a bit of trouble on part 2 cause I forgot to use `abs()` on an int 
 but I got it in the end.
 \
 Will report back tomorrow for Day 2.
+
+### 2025/12/02
+Just read Part 1 of Day 2, and I already have some ideas besides the bruteforce approach -
+which, if I'm trying to anticipate could be useful for Part 2 -, e.g. using the fact that
+invalid IDs will be multiples of 1 + 10^n where n > 0;
