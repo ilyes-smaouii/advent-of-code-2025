@@ -23,3 +23,6 @@ Will report back tomorrow for Day 2.
 Just read Part 1 of Day 2, and I already have some ideas besides the bruteforce approach -
 which, if I'm trying to anticipate could be useful for Part 2 -, e.g. using the fact that
 invalid IDs will be multiples of 1 + 10^n where n > 0;
+\
+Update : had a bit of trouble, switched to the simple approach of using strings, and after
+fishing out a but, I figured it out. Now onto Part 2.

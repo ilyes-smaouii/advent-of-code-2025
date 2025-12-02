@@ -23,7 +23,7 @@ def get_ranges(input):
 def is_invalid(id):
   id_str = str(id)
   str_len = len(id_str)
-  return id_str[:(str_len // 2)] == id_str[(str_len // 2):] or str_len == 1
+  return id_str[:(str_len // 2)] == id_str[(str_len // 2):]
 
 
 # def is_invalid(id):
