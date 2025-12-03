@@ -26,3 +26,9 @@ invalid IDs will be multiples of 1 + 10^n where n > 0;
 \
 Update : had a bit of trouble, switched to the simple approach of using strings, and after
 fishing out a but, I figured it out. Now onto Part 2.
+
+### 2025/12/03
+Couldn't finish Day 2 last night as I was busy, and I was trying to think of an efficient
+approach, but I just ended up using a slow solution.
+\
+I'll try to read and do Day 3 later today, I've got other stuff to take care of right now.

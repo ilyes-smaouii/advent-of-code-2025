@@ -68,3 +68,33 @@ helpers.print_log_entries("Sum of invalid IDs :",
 ######
 # PART 2
 ######
+
+
+def has_repeat(word, n, wl=None):
+  if wl == None:
+    wl = len(word)
+  sub = wl // n
+  return (wl % n == 0) and (word[:-sub] == word[sub:])
+
+
+def has_any_repeat(word):
+  wl = len(word)
+  for n in range(2, len(word) + 1):
+    if has_repeat(word, n):
+      return True
+  return False
+
+
+def sum_invalid_ids_p2(ranges):
+  total_sum = 0
+  for (start, end) in ranges:
+    for n in range(int(start), int(end) + 1):
+      if has_any_repeat(str(n)):
+        total_sum += n
+  return total_sum
+
+
+le_sum_of_invalid_p2 = sum_invalid_ids_p2(le_ranges)
+
+helpers.print_log_entries(
+  "Sum of invalid IDs (for Part 2) :", le_sum_of_invalid_p2, log_cats={"R"})
