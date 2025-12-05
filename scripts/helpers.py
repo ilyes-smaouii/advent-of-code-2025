@@ -122,6 +122,18 @@ def set_log_by_parts():
   LOG_DICT["P1"] = [True, "PART 1"]
   LOG_DICT["P2"] = [True, "PART 2"]
 
+def get_size(table) :
+  """
+  Returns a tuple representing the size of table (e.g. (2, 3, 4) for a
+  2 by 3 by 4 3D table)
+  Assumes table is of list type, with any number of dimensions
+  """
+  size_elements = []
+  curr_dim = table
+  while (type(curr_dim) == list) :
+    size_elements.append(len(curr_dim))
+    curr_dim = curr_dim[0]
+  return tuple(size_elements)
 
 class SimpleTableView():
   #

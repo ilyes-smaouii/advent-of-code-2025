@@ -32,3 +32,16 @@ Couldn't finish Day 2 last night as I was busy, and I was trying to think of an 
 approach, but I just ended up using a slow solution.
 \
 I'll try to read and do Day 3 later today, I've got other stuff to take care of right now.
+
+### 2025/12/04
+Update on Part 1 of Day 03 : didn't have time to code it yesterday as I was out, but I took
+some notes on my phone, and after a minor correction it worked straight away. Now onto
+Part 2.
+
+### 2025/12/05
+Update on yesterday : wrote the code for Day 03 fairly quickly, but it kept crashing. It turned out
+my test data wasn't properly initialized, which caused the continous crashes. Got the right answer
+once I fixed that.
+\
+I'd also started to look at Day 04 and to think about it, although I couldn't really write code yet.
+I'm now starting to write the code
