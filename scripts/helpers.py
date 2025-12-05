@@ -122,7 +122,8 @@ def set_log_by_parts():
   LOG_DICT["P1"] = [True, "PART 1"]
   LOG_DICT["P2"] = [True, "PART 2"]
 
-def get_size(table) :
+
+def get_size(table):
   """
   Returns a tuple representing the size of table (e.g. (2, 3, 4) for a
   2 by 3 by 4 3D table)
@@ -130,10 +131,36 @@ def get_size(table) :
   """
   size_elements = []
   curr_dim = table
-  while (type(curr_dim) == list) :
+  while (type(curr_dim) == list):
     size_elements.append(len(curr_dim))
     curr_dim = curr_dim[0]
   return tuple(size_elements)
+
+
+def get_neighbors_9_permissive(row_idx, col_idx):
+  neighbors = set()
+  for ri in range(row_idx - 1, row_idx + 2):
+    for ci in range(col_idx - 1, col_idx + 2):
+      neighbors.add((ri, ci))
+  return neighbors
+
+
+def get_neighbors_9(row_idx, col_idx, row_count=None, col_count=None):
+  neighbors = set()
+  if row_count == None:
+    row_count = row_idx + 2
+  if col_count == None:
+    col_count = col_idx + 2
+  for ri in range(row_idx - 1, row_idx + 2):
+    for ci in range(col_idx - 1, col_idx + 2):
+      if 0 <= ri < row_count and 0 <= ci < col_count:
+        neighbors.add((ri, ci))
+  return neighbors
+
+
+def get_neighbors_8(row_idx, col_idx, row_count=None, col_count=None):
+  return get_neighbors_9(row_idx, col_idx, row_count, col_count).difference({(row_idx, col_idx)})
+
 
 class SimpleTableView():
   #

@@ -44,4 +44,9 @@ my test data wasn't properly initialized, which caused the continous crashes. Go
 once I fixed that.
 \
 I'd also started to look at Day 04 and to think about it, although I couldn't really write code yet.
-I'm now starting to write the code
+I'm now starting to write the code.
+\
+Update : made a lot of stupid mistake, but I'm now done with Part 1. Moving on to Part 2.
+\
+Update : solved it, although I'm not too happy with the speed of my code. Anyway, I'm not wasting
+any more time on this. Moving on to Day 05.
