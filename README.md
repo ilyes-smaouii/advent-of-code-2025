@@ -50,3 +50,10 @@ Update : made a lot of stupid mistake, but I'm now done with Part 1. Moving on t
 \
 Update : solved it, although I'm not too happy with the speed of my code. Anyway, I'm not wasting
 any more time on this. Moving on to Day 05.
+\
+Update : solved Day 5. Surprisingly enough, Part 2 kinda felt easier than Part 1. I'm also pretty
+happy with the algorithm I've used to "fuse" the ranges, which reminds of a technical test I'd once
+had to do, which I'd failed at, but I feel I'd be able to better approach today. Ironically enough,
+failing that techical test was also what prompted me to get into Advent of Code in the first place
+(and also started me on a lot of other projects). Anyway, will report back tomorrow - or when I'm
+available - for Day 6.
