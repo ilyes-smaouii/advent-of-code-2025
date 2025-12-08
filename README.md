@@ -57,3 +57,10 @@ had to do, which I'd failed at, but I feel I'd be able to better approach today.
 failing that techical test was also what prompted me to get into Advent of Code in the first place
 (and also started me on a lot of other projects). Anyway, will report back tomorrow - or when I'm
 available - for Day 6.
+
+### 2025/12/09
+Been struggling for for hours with Day 6 using C++, and I just realized that a big part of that is
+because Windows ends its lines differently from Unix/Linux systems, which left an extra `'\r'` at the
+end of all my lines - but the last one -, and made my entire program bug. SMH.
+\
+Anyway, Day finished, moving on to Day 7 (probably not now though, maybe later).

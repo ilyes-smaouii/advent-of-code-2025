@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <iostream>
+#include <istream>
 #include <memory>
 #include <sstream>
 #include <string>
@@ -37,7 +38,9 @@ std::string vectorToString(const std::vector<T> &vec) {
   for (const auto &e : vec) {
     string_str << e << ", ";
   }
-  return string_str.str();
+  auto str = string_str.str();
+  str.pop_back();
+  return str;
 }
 
 using cat_t = std::string;
@@ -72,6 +75,8 @@ protected:
   const cat_map_t &_cats_map{LOG_CATS_MAP};
 };
 
+std::ostream &operator<<(std::ostream &os, const LogEntry &log_entry);
+
 template <typename T>
 std::vector<LogEntry>
 getLogEntriesAux(std::vector<cat_t> cats,
@@ -87,9 +92,6 @@ getLogEntriesAux(std::vector<cat_t> cats,
         break;
       }
     }
-  }
-  if (should_log) {
-    log_entries.emplace_back(std::forward<T>(msg), cats);
   }
   if (should_log) {
     log_entries.emplace_back(std::forward<T>(msg), cats);
@@ -129,6 +131,8 @@ std::vector<LogEntry> getLogEntries(const std::vector<cat_t> &cats, T &&msg,
 template <typename... Args>
 void printLogEntries(std::vector<cat_t> cats, Args... msgs) {
   auto log_entries = getLogEntries(cats, msgs...);
+  // std::cout << "printLogEntries() - log_entries : "
+  //           << vectorToString(log_entries) << std::endl; // [debugging]
   for (const auto &log_entry : log_entries) {
     std::cout << log_entry.toStr() << std::endl;
   }

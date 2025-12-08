@@ -1,8 +1,8 @@
 #include "helpers.hpp"
 
-#include <cstdarg>
 #include <fstream>
 #include <ios>
+#include <limits>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -27,7 +27,12 @@ std::vector<std::string> getFileContentAslines(const std::string &filename) {
   }
   std::string curr_line{};
   std::vector<std::string> lines{};
+  // file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+  // file.ignore(std::numeric_limits<std::streamsize>::max(), '\r');
   while (std::getline(file, curr_line)) {
+    if (curr_line.back() == '\r') {
+      curr_line.pop_back();
+    }
     lines.push_back(curr_line);
   }
   return lines;
@@ -45,16 +50,24 @@ std::vector<std::string> rawToLines(const std::string &raw) {
 
 std::string LogEntry::toStr() const {
   std::string res;
+  // std::cout << "LogEntry::toStr() called with cats : " <<
+  // vectorToString(_cats)
+  //           << std::endl; // [debugging]
   for (const auto &cat : _cats) {
-    std::string msg{cat};
+    std::string log_cat{cat};
     auto it = _cats_map.find(cat);
     if (it != _cats_map.end()) {
-      msg = it->second.second;
+      log_cat = it->second.second;
     }
-    res += "[" + msg + "]";
+    res += "[" + log_cat + "]";
   }
   res += " " + _msg;
   return res;
+}
+
+std::ostream &operator<<(std::ostream &os, const LogEntry &log_entry) {
+  os << (log_entry.toStr());
+  return os;
 }
 
 } // namespace helper

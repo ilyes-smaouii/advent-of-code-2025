@@ -2,14 +2,18 @@
 
 #include <cstddef>
 #include <format>
-#include <iostream>
 #include <iterator>
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace hlp = helper;
+
+// PART 1
+
+constexpr char SPACE_CHAR{' '}, MUL_CHAR{'*'}, ADD_CHAR{'+'};
 
 std::size_t getPart1Results(std::vector<std::string> lines) {
   std::size_t row_count = lines.size();
@@ -24,7 +28,8 @@ std::size_t getPart1Results(std::vector<std::string> lines) {
     operands.insert(std::end(operands), begin_iter, end_iter);
   }
   hlp::printLogEntries({"I"}, "Number of operands : ", operands.size());
-  hlp::printLogEntries({"II"}, "Operands :", hlp::vectorToString(operands));
+  hlp::printLogEntries({"II", "OP"},
+                       "Operands :", hlp::vectorToString(operands));
   if (operands.size() % row_count == 0) {
     col_count = operands.size() / (row_count - 1);
     hlp::printLogEntries({"I"}, std::format("Row count : {}, col_count : {}",
@@ -36,7 +41,6 @@ std::size_t getPart1Results(std::vector<std::string> lines) {
   // Then, read operators
   auto &operators_lines = *(--it);
   std::vector<char> operators{};
-  constexpr char SPACE_CHAR{' '}, MUL_CHAR{'*'}, ADD_CHAR{'+'};
   for (auto operator_iter = operators_lines.begin();
        operator_iter != operators_lines.end(); operator_iter++) {
     if ((*operator_iter) == MUL_CHAR || (*operator_iter) == ADD_CHAR) {
@@ -84,24 +88,199 @@ std::size_t getPart1Results(std::vector<std::string> lines) {
   return res;
 }
 
+// PART 2
+
+bool isDigit(const char some_char) {
+  return '0' <= some_char && some_char <= '9';
+}
+
+bool isOperator(const char some_char) {
+  return some_char == ADD_CHAR || some_char == MUL_CHAR;
+}
+
+std::vector<std::size_t> getOperands(std::size_t operand_pos,
+                                     const std::vector<std::string> &lines) {
+  hlp::printLogEntries(
+      {"I"},
+      std::format("getOperands() - called with operand_pos = {}", operand_pos));
+  std::size_t row_count{lines.size()};
+  std::size_t col_count{lines.at(0).length()};
+  bool reached_end = false;
+  std::vector<std::size_t> operands{};
+  while (!reached_end && operand_pos < col_count) {
+    reached_end = true;
+    std::size_t sub_operand{0};
+    for (std::size_t line_idx{0}; line_idx < row_count - 1; line_idx++) {
+      const std::string &operand_line = lines.at(line_idx);
+      if (isDigit(operand_line.at(operand_pos))) {
+        reached_end = false;
+        sub_operand *= 10;
+        sub_operand += ((operand_line.at(operand_pos)) - '0');
+      }
+    }
+    if (!reached_end) {
+      operands.push_back(sub_operand);
+    }
+    operand_pos++;
+  }
+  // operands.pop_back();
+  return operands;
+}
+
+std::size_t computeSubRes(std::size_t operand_pos, char opr,
+                          const std::vector<std::string> &lines) {
+  hlp::printLogEntries({"SR"},
+                       std::format("computeSubRes() - operator : {}", opr));
+  std::size_t res{};
+  auto operands = getOperands(operand_pos, lines);
+  hlp::printLogEntries({"I", "OP", "SR"}, "computeSubRes() - operands : ",
+                       hlp::vectorToString(operands));
+  if (opr == MUL_CHAR) {
+    res = 1;
+    for (const auto &operand : operands) {
+      res *= operand;
+    }
+  } else if (opr == ADD_CHAR) {
+    res = 0;
+    for (const auto &operand : operands) {
+      res += operand;
+    }
+  } else {
+    std::string msg = std::format("Error : operator should be ADD or MULTIPLY "
+                                  "! (got ASCII character n°{} instead)",
+                                  static_cast<int>(opr));
+    throw std::runtime_error(msg);
+  }
+  hlp::printLogEntries({"SR"},
+                       std::format("computeSubRes() - Returning {}", res));
+  return res;
+}
+
+std::pair<std::size_t, std::size_t>
+getNextPositions(const std::vector<std::string> &lines,
+                 std::pair<std::size_t, std::size_t> positions) {
+  hlp::printLogEntries({"I"}, "getNextPositions() - starting..");
+  // First, take care of operand cursor
+  std::size_t &prev_oprd_pos{positions.first},
+      &prev_oprtr_pos{positions.second};
+  std::size_t row_count = lines.size();
+  std::size_t col_count = lines.at(0).length();
+  hlp::printLogEntries(
+      {"I"}, std::format("getNextPositions() - col_count at {}", col_count));
+  bool finished{false};
+  while (!finished) {
+    if (prev_oprd_pos >= col_count) {
+      finished = true;
+      break;
+    }
+    finished = true;
+    for (std::size_t line_idx{0}; line_idx < row_count - 1; line_idx++) {
+      if (isDigit(lines.at(line_idx).at(prev_oprd_pos))) {
+        finished = false;
+      }
+    }
+    if (!finished) {
+      prev_oprd_pos++;
+    }
+  }
+  finished = false;
+  while (!finished) {
+    if (prev_oprd_pos >= col_count) {
+      finished = true;
+      break;
+    }
+    for (std::size_t line_idx{0}; line_idx < row_count - 1; line_idx++) {
+      if (isDigit(lines.at(line_idx).at(prev_oprd_pos))) {
+        finished = true;
+      }
+    }
+    if (!finished) {
+      prev_oprd_pos++;
+    }
+  }
+
+  // Then, operator
+  hlp::printLogEntries({"I"}, "getNextPositions() - moving on to operator..");
+  const std::string &operator_line = lines.at(row_count - 1);
+  hlp::printLogEntries({"I"}, "getNextPositions() - operator - 1st at()");
+  if (prev_oprtr_pos < col_count &&
+      isOperator(operator_line.at(prev_oprtr_pos))) {
+    prev_oprtr_pos++;
+  } else {
+    throw std::runtime_error("getNextPositions() error : prev_oprtr_pos should "
+                             "be pointing at an operator !");
+  }
+  hlp::printLogEntries({"I"}, "getNextPositions() - operator - 2nd at()");
+  while (prev_oprtr_pos < col_count &&
+         operator_line.at(prev_oprtr_pos) == SPACE_CHAR) {
+    prev_oprtr_pos++;
+  }
+  if (prev_oprtr_pos < col_count) {
+    hlp::printLogEntries({"I"}, "getNextPositions() - operator - 3rd at()");
+    hlp::printLogEntries(
+        {"I"}, "getNextPositions() - operator_line.at(prev_oprtr_pos) :",
+        static_cast<int>(operator_line.at(prev_oprtr_pos)));
+  }
+
+  hlp::printLogEntries({"I"},
+                       std::format("getNextPositions() - returning ({}, {})",
+                                   prev_oprd_pos, prev_oprtr_pos));
+  return std::make_pair(prev_oprd_pos, prev_oprtr_pos);
+}
+
+std::size_t computeRes_p2(const std::vector<std::string> &lines) {
+  std::size_t row_count = lines.size();
+  std::size_t col_count = lines.at(0).length();
+  hlp::printLogEntries(
+      {"I"}, std::format("computeRes_p2() - col_count at {}", col_count));
+  hlp::printLogEntries(
+      {"I"}, std::format("computeRes_p2() - last character : ",
+                         static_cast<int>(lines.at(4).at(col_count - 1))));
+  std::pair<std::size_t, std::size_t> positions{0, 0};
+  auto &operand_pos{positions.first}, &operator_pos{positions.second};
+  const auto &operator_line = lines.at(row_count - 1);
+
+  std::size_t res{0};
+  while (operator_pos < col_count && operand_pos < col_count) {
+    res += computeSubRes(operand_pos, operator_line.at(operator_pos), lines);
+    positions = getNextPositions(lines, positions);
+    hlp::printLogEntries({"I", "POS"}, "positions currently at : ",
+                         std::format("{}, {}", operand_pos, operator_pos));
+  }
+  return res;
+}
+
 int main(int argc, char *argv[]) {
   const std::string filename{"../inputs/day_06_input.txt"};
   auto lines = hlp::getFileContentAslines(filename);
   auto test_lines = hlp::rawToLines(R"(123 328  51 64 
  45 64  387 23 
   6 98  215 314
-*   +   *   +)");
+*   +   *   +  )");
 
   // lines = test_lines;
 
   // PART 1
 
-  hlp::LOG_CATS_MAP["I"].first = true;
-  hlp::LOG_CATS_MAP["II"] = std::make_pair("DETAILED INFO", false);
+  hlp::LOG_CATS_MAP["I"].first = false;
+  hlp::LOG_CATS_MAP["II"] = std::make_pair(false, "DETAILED INFO");
 
   auto res = getPart1Results(lines);
 
   hlp::printLogEntries({"R"}, "Result for Part 1 :", res);
 
-  hlp::printLogEntries({"R", "T"}, "Results");
+  // PART 2
+
+  hlp::LOG_CATS_MAP["POS"] = std::make_pair(false, "POS");
+  hlp::LOG_CATS_MAP["OP"] = std::make_pair(false, "OP");
+  hlp::LOG_CATS_MAP["SR"] = std::make_pair(false, "SubRes");
+
+  std::string lines_length_msg{};
+  for (auto &line : lines) {
+    lines_length_msg += "Line length : " + std::to_string(line.length()) + "\n";
+  }
+  hlp::printLogEntries({"I"}, lines_length_msg);
+
+  auto res_p2 = computeRes_p2(lines);
+  hlp::printLogEntries({"R"}, "Result for Part 2 :", res_p2);
 }
