@@ -76,3 +76,6 @@ I went to prepare some code and ended up writing the whole thing in a few minute
 \
 I'm gonna try not to read the instructions for Day 8 straight away because I really have to stop
 this and go do other things right now.
+\
+Update : just read the instructions for Day 8, and damn. Will try to think about it while I make
+myself dinner.
