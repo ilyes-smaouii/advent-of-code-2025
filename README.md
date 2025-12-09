@@ -64,3 +64,9 @@ because Windows ends its lines differently from Unix/Linux systems, which left a
 end of all my lines - but the last one -, and made my entire program bug. SMH.
 \
 Anyway, Day finished, moving on to Day 7 (probably not now though, maybe later).
+\
+Update : went ahead and looked at Day 7 anyway. Part 1 was relatively easy. I tried a naive
+recursive approach for Part 2 and, unsurprisingly, it didn't work. I'm going to have to use
+memoization (by starting from the bottom layer, and making the program determine the number of
+possibilities starting from each cell in the layer above, then the layer above that, etc.).
+I'm gonna do that later though, I don't have time right now.

@@ -35,6 +35,15 @@ def table_to_raw(table, line_transformation_func=None, cell_transformation_func=
   return final_str
 
 
+def apply_transform_on_table(table, cell_transformation_func=None):
+  if cell_transformation_func == None:
+    cell_transformation_func = id_func
+  final_table = []
+  for line in table:
+    final_table.append([cell_transformation_func(cell) for cell in line])
+  return final_table
+
+
 def raw_to_table(raw_content, cell_transformation_func=None):
   if cell_transformation_func == None:
     cell_transformation_func = id_func
