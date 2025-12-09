@@ -81,7 +81,10 @@ for i in range(le_row_count):
   le_table, new_splits = next_step(le_table)
   le_split_count += new_splits
 
-print(helpers.table_to_raw(le_table))
+# print(helpers.table_to_raw(le_table))
+
+helpers.print_log_entries("Total number of splits : ",
+                          le_split_count, log_cats={"R"})
 
 
 ######
@@ -131,3 +134,8 @@ def count_timelines_memoized(table, row_idx, col_idx):
       count_dict[(row_idx_, col_idx_)] = get_new_count(
         table, count_dict, row_idx_, col_idx_)
   return count_dict[(row_idx, col_idx)]
+
+le_timeline_count = count_timelines_memoized(le_char_table, 0, le_char_table[0].index(START_CHAR))
+
+helpers.print_log_entries("Total number of timelines : ",
+                          le_timeline_count, log_cats={"R"})
