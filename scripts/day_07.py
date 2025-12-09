@@ -105,3 +105,29 @@ def count_timelines_rec(table, row_idx, col_idx):
       return count
   else:
     return 1
+
+
+def get_new_count(table, count_dict, row_idx, col_idx):
+  row_count = len(table)
+  col_count = len(table[0])
+  if row_idx < row_count - 1:
+    if table[row_idx + 1][col_idx] == EMPTY_CHAR:
+      return count_dict[(row_idx + 1, col_idx)]
+    else:
+      return count_dict[(row_idx + 1, col_idx - 1)] + count_dict[(row_idx + 1, col_idx + 1)]
+  else:
+    if table[row_idx][col_idx] == EMPTY_CHAR:
+      return 1
+    else:
+      return 0
+
+
+def count_timelines_memoized(table, row_idx, col_idx):
+  row_count = len(table)
+  col_count = len(table[0])
+  count_dict = dict()
+  for row_idx_ in range(row_count - 1, row_idx - 1, -1):
+    for col_idx_ in range(col_count):
+      count_dict[(row_idx_, col_idx_)] = get_new_count(
+        table, count_dict, row_idx_, col_idx_)
+  return count_dict[(row_idx, col_idx)]

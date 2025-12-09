@@ -70,3 +70,6 @@ recursive approach for Part 2 and, unsurprisingly, it didn't work. I'm going to 
 memoization (by starting from the bottom layer, and making the program determine the number of
 possibilities starting from each cell in the layer above, then the layer above that, etc.).
 I'm gonna do that later though, I don't have time right now.
+\
+Update : nvm it was easier/quicker than I though,
+I went to prepare some code and ended up writing the whole thing in a few minutes.
