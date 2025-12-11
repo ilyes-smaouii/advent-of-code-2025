@@ -48,6 +48,20 @@ std::vector<std::string> rawToLines(const std::string &raw) {
   return lines;
 }
 
+std::vector<std::vector<char>>
+getFileContentAsTable(const std::string &filename) {
+  std::vector<std::vector<char>> final_table{};
+  auto lines = getFileContentAslines(filename);
+  for (const auto &line : lines) {
+    final_table.emplace_back();
+    auto &curr_line = final_table.back();
+    for (const auto &curr_cell : line) {
+      curr_line.push_back(curr_cell);
+    }
+  }
+  return final_table;
+}
+
 std::string LogEntry::toStr() const {
   std::string res;
   // std::cout << "LogEntry::toStr() called with cats : " <<
