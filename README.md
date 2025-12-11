@@ -79,3 +79,7 @@ this and go do other things right now.
 \
 Update : just read the instructions for Day 8, and damn. Will try to think about it while I make
 myself dinner.
+
+### 2025/12/11
+Update on Day 8 : didn't do much, and I may not allocate too much time for it in the next few days
+as I'm a little busy, but I might still give it a go.
