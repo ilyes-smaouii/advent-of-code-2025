@@ -32,7 +32,8 @@ std::vector<std::string> getFileContentAslines(const std::string &filename);
 
 std::vector<std::string> rawToLines(const std::string &raw);
 
-std::vector<std::vector<char>> getFileContentAsTable(const std::string& filename);
+std::vector<std::vector<char>>
+getFileContentAsTable(const std::string &filename);
 
 template <typename T>
 std::string vectorToString(const std::vector<T> &vec) {

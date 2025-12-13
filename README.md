@@ -94,3 +94,32 @@ Once I figured that out, it didn't take me too long to do Part 2.
 \
 Update : finished Part 1 of Day 09 and read instruction for Part 2. Will try to think about
 it and do it later.
+\
+Update : seems pretty complex, I don't really have any promising leads in mind right now.
+I don't even see how I could determine whether, for a given loop, a certain tile is inside
+that loop or not, assuming I could find the loop in the first place.
+\
+Update : I might have some idea after all. The basic idea is this : first, trace lines between
+consecutive red tiles from the list; then, fill out the enclosed areas by "propagating" from
+the outer lines into the inside, layer by layer. Then, you could iterate through the possible
+pairs of corner red tiles, and check whether the corresponding rectangle is filled with red/green
+tiles.
+\
+Update : I realized it's much more complicated than I thought. Here's maybe a simpler approach to
+implement : trace only border lines, then iterate through the possible pairs, and for each pair
+try to "grow out" the corresponding rectangle line by line, untill it either gets stopped by the
+border lines, or "spills out" into at least one of the edges of the whole table.
+\
+Update : just spent so much time just on tracing/determining the borders, and takes so long to
+execute too. This honestly feels
+impossible, or like it's going to be really messy and long.
+\
+Update : currently at 500 lines of code, and I'm not even finished.
+\
+Update : currently testing out some code for "growing" areas into borders, and it takes a lot
+(a looot) of RAM - I think it hit somewhere close to 35 GB at some point - and it's clearly too slow.
+Update : it was mostly because of the constant creation of `TableView` objects, which took a lot
+of time + memory. It now runs a lot faster (grew area from 1 to like 2 million cells in a few seconds),
+but that's probably still not near fast enough, considering the rectangle I found in Part 1 was about
+4 billion cells (and it already took a lot longer than just a few seconds to get to 7 millions, for
+example).
