@@ -54,6 +54,7 @@ inline std::unordered_map<std::string, std::pair<bool, std::string>>
         {"T", {false, "TESTING"}},
         {"I", {false, "INFO"}},
         {"R", {true, "RESULTS"}},
+        {"D", {true, "DEBUGGING"}},
     };
 
 class LogEntry {

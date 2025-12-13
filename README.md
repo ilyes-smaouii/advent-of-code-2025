@@ -83,3 +83,14 @@ myself dinner.
 ### 2025/12/11
 Update on Day 8 : didn't do much, and I may not allocate too much time for it in the next few days
 as I'm a little busy, but I might still give it a go.
+
+### 2025/12/13
+Took me days to figure out an algorithm, implement it, and then debug it. Turns out
+using `std::uint32_t` caused wrong values to be computed for my square distances, which
+falsified all my results. I straight up had to re-implement `std::hash` and `std::less`
+and try all kinds of algorithms and data structures, just for it to be caused by a single line of
+code in the end.
+Once I figured that out, it didn't take me too long to do Part 2.
+\
+Update : finished Part 1 of Day 09 and read instruction for Part 2. Will try to think about
+it and do it later.
