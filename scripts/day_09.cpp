@@ -99,6 +99,11 @@ struct Rectangle {
   cell_t corner_b;
 };
 
+struct Range {
+  coord_num_t min;
+  coord_num_t max;
+};
+
 // namespace std {
 // template <std::size_t I>
 // cell_t get(const Rectangle &rect);
@@ -126,11 +131,11 @@ cell_t parseLine(const std::string &line) {
 }
 
 area_t computeArea(const cell_t coord_a, const cell_t coord_b) {
-  const auto diff_row = 1 + std::abs(static_cast<int64_t>(coord_a.row) -
-                                     static_cast<int64_t>(coord_b.col));
-  const auto diff_col = 1 + std::abs(static_cast<int64_t>(coord_a.row) -
-                                     static_cast<int64_t>(coord_b.col));
-  return diff_row * diff_col;
+  const auto diff_row = std::abs(static_cast<int64_t>(coord_a.row) -
+                                 static_cast<int64_t>(coord_b.row));
+  const auto diff_col = std::abs(static_cast<int64_t>(coord_a.col) -
+                                 static_cast<int64_t>(coord_b.col));
+  return (1 + diff_row) * (1 + diff_col);
 }
 namespace std {
 template <>
@@ -161,16 +166,35 @@ struct less<cell_t> {
 // };
 } // namespace std
 
-struct MyRectangleLess {
+/*
+  Custom Less operator() on Rectangles that should be independent on
+  the order of the corners, and allow
+  {a, b} to be considered equal to {b, a} for any a and b
+ */
+struct RectangleLessBase {
+
+  bool operator()(const Rectangle &rectangle_a,
+                  const Rectangle &rectangle_b) const {
+    auto rect_a_corner_min =
+        std::min(rectangle_a.corner_a, rectangle_a.corner_b);
+    auto rect_a_corner_max =
+        std::max(rectangle_a.corner_a, rectangle_a.corner_b);
+    auto rect_b_corner_min =
+        std::min(rectangle_b.corner_a, rectangle_b.corner_b);
+    auto rect_b_corner_max =
+        std::max(rectangle_b.corner_a, rectangle_b.corner_b);
+    return std::less()(std::make_pair(rect_a_corner_min, rect_a_corner_max),
+                       std::make_pair(rect_b_corner_min, rect_b_corner_max));
+  }
+};
+
+struct RectangleLessOnArea {
   bool operator()(const Rectangle &rectangle_a,
                   const Rectangle &rectangle_b) const {
     const auto area_a = computeArea(rectangle_a.corner_a, rectangle_a.corner_b);
     const auto area_b = computeArea(rectangle_b.corner_a, rectangle_b.corner_b);
     return std::less()(area_a, area_b) ||
-           (area_a == area_b &&
-            std::less()(
-                std::make_pair(rectangle_a.corner_a, rectangle_a.corner_b),
-                std::make_pair(rectangle_b.corner_a, rectangle_b.corner_b)));
+           (area_a == area_b && RectangleLessBase()(rectangle_a, rectangle_b));
   }
 };
 
@@ -714,14 +738,74 @@ bool checkIfWillSpillEff_v2(
   return checkIfAreaSpilled_v2<cell_set_t>(final_area, row_count, col_count);
 }
 
+bool checkIfRangesIntersect(const Range &range_a, const Range &range_b) {
+  auto &[min_a, max_a] = range_a;
+  auto &[min_b, max_b] = range_b;
+  return (min_a < max_b && max_a > min_b);
+}
+
+bool checkIfRectangleIsSplitAux(const Rectangle &rect, const cell_t &cell_a,
+                                const cell_t &cell_b) {
+  auto &[row_cell_a, col_cell_a] = cell_a;
+  auto &[row_cell_b, col_cell_b] = cell_b;
+  auto &[rect_a, rect_b] = rect;
+  auto &[row_rect_a, col_rect_a] = rect_a;
+  auto &[row_rect_b, col_rect_b] = rect_b;
+  const coord_num_t max_line_row{std::max(row_cell_a, row_cell_b)},
+      max_line_col{std::max(col_cell_a, col_cell_b)};
+  const coord_num_t min_line_row{std::min(row_cell_a, row_cell_b)},
+      min_line_col{std::min(col_cell_a, col_cell_b)};
+  const coord_num_t max_rect_row{std::max(row_rect_a, row_rect_b)},
+      max_rect_col{std::max(col_rect_a, col_rect_b)};
+  const coord_num_t min_rect_row{std::min(row_rect_a, row_rect_b)},
+      min_rect_col{std::min(col_rect_a, col_rect_b)};
+  const Range range_line_row{min_line_row, max_line_row},
+      range_line_col{min_line_col, max_line_col};
+  const Range range_rect_row{min_rect_row, max_rect_row},
+      range_rect_col{min_rect_col, max_rect_col};
+  return checkIfRangesIntersect(range_line_row, range_rect_row) &&
+         checkIfRangesIntersect(range_line_col, range_rect_col);
+}
+
 bool checkIfRectangleIsSplit(const Rectangle &rect,
                              const std::vector<cell_t> &coords) {
   for (std::size_t i{0}; i < coords.size(); i++) {
-    auto &corner_a = coords.at(i);
-    auto &corner_b = coords.at((i + 1) % coords.size());
-    auto &[row_a, col_a] = corner_a;
-    auto &[row_b, col_b] = corner_b;
+    auto &cell_a = coords.at(i);
+    auto &cell_b = coords.at((i + 1) % coords.size());
+    if (checkIfRectangleIsSplitAux(rect, cell_a, cell_b)) {
+      return true;
+    }
   }
+  return false;
+}
+
+std::string rectangleToStr(const Rectangle &rect) {
+  return std::format("({}, {}), ({}, {})", rect.corner_a.row, rect.corner_a.col,
+                     rect.corner_b.row, rect.corner_b.col);
+}
+
+Rectangle findLargestUnsplitRectangle(const std::vector<cell_t> &coords) {
+  std::set<Rectangle, RectangleLessOnArea> rectangles_ordered{};
+  for (std::size_t i{0}; i < coords.size(); i++) {
+    for (std::size_t j{i + 1}; j < coords.size(); j++) {
+      auto &cell_a = coords.at(i);
+      auto &cell_b = coords.at(j);
+      rectangles_ordered.insert({cell_a, cell_b});
+    }
+  }
+  for (auto &rect : rectangles_ordered) {
+    hlp::printLogEntries({"D"},
+                         "findLargestUnsplitRectangle :", rectangleToStr(rect),
+                         std::format("(area : {})", computeArea(rect)));
+  }
+  for (auto rect_iter = rectangles_ordered.rbegin();
+       rect_iter != rectangles_ordered.rend(); rect_iter++) {
+    if (!checkIfRectangleIsSplit(*rect_iter, coords)) {
+      return *rect_iter;
+    }
+  }
+  throw std::runtime_error("findLargestUnsplitRectangle() error : couldn't "
+                           "find unsplit rectangle !");
 }
 
 int main(int argc, char *argv[]) {
@@ -747,7 +831,7 @@ int main(int argc, char *argv[]) {
       {"R"}, std::format("Got coords ({} of them)", le_coords.size()));
   hlp::printLogEntries({"D"}, "Coords :", hlp::vectorToString(le_coords));
 
-  std::set<Rectangle, MyRectangleLess> rectangles_set{};
+  std::set<Rectangle, RectangleLessOnArea> rectangles_set{};
 
   for (std::size_t i{0}; i < le_coords.size(); i++) {
     for (std::size_t j{i}; j < le_coords.size(); j++) {
@@ -815,15 +899,24 @@ int main(int argc, char *argv[]) {
   // auto le_test_area = checkIfWillSpillEff<DirectionalCellOrderings::TopLeft>(
   //     le_borders, {{start_row, start_col}}, {le_rc, le_cc});
   CustomCellSetTypes::TopLeft le_candidates = {{start_row, start_col}};
-  auto will_spill = checkIfWillSpillEff_v2<
-      CustomCellSetType_t<DirectionalCellOrderings::TopLeft>>(
-      le_borders, le_candidates, std::make_pair(le_rc, le_cc));
-  std::cout << "le_test_area : " << std::boolalpha << will_spill << std::endl;
+  // auto will_spill = checkIfWillSpillEff_v2<
+  //     CustomCellSetType_t<DirectionalCellOrderings::TopLeft>>(
+  //     le_borders, le_candidates, std::make_pair(le_rc, le_cc));
+  // std::cout << "le_test_area : " << std::boolalpha << will_spill <<
+  // std::endl;
 
   // hlp::printLogEntries({"I"}, tableWithArea(le_test_area, le_rc,
   // le_cc).str());
 
   std::cout << "res_area (Part 2) : " << res_area << std::endl;
+
+  auto le_largest_rect_p2 = findLargestUnsplitRectangle(le_coords);
+  auto &[corner_a, corner_b] = le_largest_rect_p2;
+
+  hlp::printLogEntries(
+      {"R"},
+      "Found largest unsplit rectangle :", rectangleToStr(le_largest_rect_p2),
+      std::format("(area : {})", computeArea(le_largest_rect_p2)));
   // CustomCellSetType_t<DirectionalCellOrderings::TopLeft> candidates_set = {
   //     {start_row, start_col}};
   // cell_set_t final_area{};

@@ -144,3 +144,12 @@ Just check, for each rectangle, wether or not a line between consecutive boxes -
 "splits" it in two. This also solves the problem of getting "stuck"/spending too long going in a
 direction. I still wanted to work on implementing my previous idea, if only for personal satisfaction,
 but I'm now switching to the latest approach, which should be much quicker to implement + to execute.
+\
+Update : had a lot of mistypes/bugs to fix, but the core code of my idea - `findLargestUnsplitRectangle()`
+, `checkIfRectangleIsSplitAux()` and `checkIfRangesIntersect()` -, worked right away, which I find kind of
+impressive considering the number of similarly named variables I had to deal with in those lines,
+especially considering I made mistakes on stuff that was much simpler (e.g. forgot to properly switch
+`col` with `row` in `computeArea()`).
+\
+Anyway, Day 09 finished. I might wanna clean up my code a little - or leave it as is, for future reference
+-, and then I'm moving on to Day 10.
