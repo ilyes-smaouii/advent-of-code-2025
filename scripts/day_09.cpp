@@ -1,10 +1,14 @@
 #include "helpers.hpp"
 
+#include <algorithm>
+#include <array>
+#include <concepts>
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <format>
+#include <ios>
 #include <iterator>
 #include <memory>
 #include <ostream>
@@ -12,7 +16,6 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
-#include <tuple>
 #include <type_traits>
 #include <unordered_set>
 #include <utility>
@@ -27,6 +30,7 @@ using area_t = std::uint64_t;
 
 struct Coordinates /* : std::pair<coord_num_t, coord_num_t> */ {
 public:
+  using num_t = coord_num_t;
   // using pt = std::pair<coord_num_t, coord_num_t>;
   // Coordinates() = default;
   // Coordinates(const pt &pair) : pt(pair) {}
@@ -201,137 +205,143 @@ protected:
   std::size_t _cell_count{};
 };
 
-template <typename CELL_T>
-class TableView {
-public:
-  static constexpr std::size_t MAX_CELL_STR_SIZE{1}; // arbitrary, but whatever
+// template <typename CELL_T>
+// class TableView {
+// public:
+//   static constexpr std::size_t MAX_CELL_STR_SIZE{1}; // arbitrary, but
+//   whatever
 
-  TableView(coord_num_t row_count, coord_num_t col_count)
-      : _row_count(row_count), _col_count(col_count) {
-    _data = std::make_shared<CELL_T[]>(row_count * col_count);
-  }
+//   TableView(coord_num_t row_count, coord_num_t col_count)
+//       : _row_count(row_count), _col_count(col_count) {
+//     _data = std::make_shared<CELL_T[]>(row_count * col_count);
+//   }
 
-  TableView(std::shared_ptr<CELL_T[]> data, coord_num_t row_count,
-            coord_num_t col_count)
-      : _data(data), _row_count(row_count), _col_count(col_count) {}
+//   TableView(std::shared_ptr<CELL_T[]> data, coord_num_t row_count,
+//             coord_num_t col_count)
+//       : _data(data), _row_count(row_count), _col_count(col_count) {}
 
-  coord_num_t rowCount() const { return _row_count; }
-  coord_num_t colCount() const { return _col_count; }
+//   coord_num_t rowCount() const { return _row_count; }
+//   coord_num_t colCount() const { return _col_count; }
 
-  void fillWith(const CELL_T &content) {
-    for (coord_num_t i{0}; i < _row_count * _col_count; i++) {
-      _data[i] = content;
-    }
-  }
+//   void fillWith(const CELL_T &content) {
+//     for (coord_num_t i{0}; i < _row_count * _col_count; i++) {
+//       _data[i] = content;
+//     }
+//   }
 
-  CELL_T &cellAt(coord_num_t row_idx, coord_num_t col_idx,
-                 bool safety_checks = true) {
-    hlp::printLogEntries({"D"}, std::format("cellAt() called with args {}, {}",
-                                            row_idx, col_idx));
-    if (safety_checks && (row_idx >= _row_count || col_idx >= _col_count)) {
-      throw std::runtime_error(
-          std::format("TableView<>::cellAt() error : row_idx ({}) >= "
-                      "_row_count ({}) || col_idx ({}) >= _col_count ({}) !",
-                      row_idx, _row_count, col_idx, _col_count));
-    }
-    return _data[row_idx * _col_count + col_idx];
-  }
+//   CELL_T &cellAt(coord_num_t row_idx, coord_num_t col_idx,
+//                  bool safety_checks = true) {
+//     hlp::printLogEntries({"D"}, std::format("cellAt() called with args {},
+//     {}",
+//                                             row_idx, col_idx));
+//     if (safety_checks && (row_idx >= _row_count || col_idx >= _col_count)) {
+//       throw std::runtime_error(
+//           std::format("TableView<>::cellAt() error : row_idx ({}) >= "
+//                       "_row_count ({}) || col_idx ({}) >= _col_count ({}) !",
+//                       row_idx, _row_count, col_idx, _col_count));
+//     }
+//     return _data[row_idx * _col_count + col_idx];
+//   }
 
-  const CELL_T &cellAt(coord_num_t row_idx, coord_num_t col_idx,
-                       bool safety_checks = true) const {
-    return cellAt(row_idx, col_idx, safety_checks);
-  }
+//   const CELL_T &cellAt(coord_num_t row_idx, coord_num_t col_idx,
+//                        bool safety_checks = true) const {
+//     return cellAt(row_idx, col_idx, safety_checks);
+//   }
 
-  LineView<CELL_T> operator[](coord_num_t row_idx) {
-    if (row_idx >= _row_count) {
-      throw std::runtime_error(std::format(
-          "TableView<>::operator[] error : row_idx ({}) >= _row_count ({}) !",
-          row_idx, _row_count));
-    }
-    return {&(_data[row_idx * _col_count]), _col_count};
-  }
+//   LineView<CELL_T> operator[](coord_num_t row_idx) {
+//     if (row_idx >= _row_count) {
+//       throw std::runtime_error(std::format(
+//           "TableView<>::operator[] error : row_idx ({}) >= _row_count ({})
+//           !", row_idx, _row_count));
+//     }
+//     return {&(_data[row_idx * _col_count]), _col_count};
+//   }
 
-  TableView<CELL_T> copy() const {
-    auto res = TableView<CELL_T>{_row_count, _col_count};
-    std::memcpy(res._data.get(), _data.get(),
-                sizeof(CELL_T) * _row_count * _col_count);
-    return res;
-  }
+//   TableView<CELL_T> copy() const {
+//     auto res = TableView<CELL_T>{_row_count, _col_count};
+//     std::memcpy(res._data.get(), _data.get(),
+//                 sizeof(CELL_T) * _row_count * _col_count);
+//     return res;
+//   }
 
-  std::string str() const {
-    // return {};
-    std::string res{};
-    res.reserve(MAX_CELL_STR_SIZE * _row_count * _col_count);
-    // std::stringstream res;
-    coord_num_t offset{0};
-    for (coord_num_t row_idx{0}; row_idx < _row_count; row_idx++) {
-      for (coord_num_t col_idx{0}; col_idx < _col_count; col_idx++) {
-        res += _data[offset++];
-      }
-      res += '\n';
-    }
-    return res;
-  }
+//   std::string str() const {
+//     // return {};
+//     std::string res{};
+//     res.reserve(MAX_CELL_STR_SIZE * _row_count * _col_count);
+//     // std::stringstream res;
+//     coord_num_t offset{0};
+//     for (coord_num_t row_idx{0}; row_idx < _row_count; row_idx++) {
+//       for (coord_num_t col_idx{0}; col_idx < _col_count; col_idx++) {
+//         res += _data[offset++];
+//       }
+//       res += '\n';
+//     }
+//     return res;
+//   }
 
-protected:
-  std::shared_ptr<CELL_T[]> _data;
-  coord_num_t _row_count{}, _col_count{};
-};
+// protected:
+//   std::shared_ptr<CELL_T[]> _data;
+//   coord_num_t _row_count{}, _col_count{};
+// };
 
 constexpr char EMPTY_CELL{'.'}, RED_CELL{'#'}, GREEN_CELL{'X'};
 
-TableView<char> getBaseTable(const std::vector<cell_t> &coords) {
-  coord_num_t max_row{0}, max_col{0};
-  for (const auto &[col, row] : coords) {
-    max_row = std::max(max_row, row);
-    max_col = std::max(max_col, col);
-  }
-  auto res = TableView<char>{max_row + 2, max_col + 2};
-  res.fillWith(EMPTY_CELL);
-  for (const auto &[col, row] : coords) {
-    res.cellAt(row, col) = RED_CELL;
-  }
-  return res;
-}
+// TableView<char> getBaseTable(const std::vector<cell_t> &coords) {
+//   coord_num_t max_row{0}, max_col{0};
+//   for (const auto &[col, row] : coords) {
+//     max_row = std::max(max_row, row);
+//     max_col = std::max(max_col, col);
+//   }
+//   auto res = TableView<char>{max_row + 2, max_col + 2};
+//   res.fillWith(EMPTY_CELL);
+//   for (const auto &[col, row] : coords) {
+//     res.cellAt(row, col) = RED_CELL;
+//   }
+//   return res;
+// }
 
 std::int8_t getDir(std::uint64_t a, std::uint64_t b) {
   return a < b ? 1 : a == b ? 0 : -1;
 }
 
-TableView<char> getBordersTable(const std::vector<cell_t> &coords) {
-  coord_num_t max_row{0}, max_col{0};
-  for (const auto &[col, row] : coords) {
-    max_row = std::max(max_row, row);
-    max_col = std::max(max_col, col);
-  }
-  auto res = TableView<char>{max_row + 2, max_col + 2};
-  res.fillWith(EMPTY_CELL);
-  // auto iter = coords.begin();
-  for (std::size_t coord_idx{0}; coord_idx < coords.size(); coord_idx++) {
-    auto &[curr_col, curr_row]{coords[coord_idx]};
-    auto &[next_col, next_row]{coords[(coord_idx + 1) % coords.size()]};
-    hlp::printLogEntries(
-        {"BORD"},
-        std::format(
-            "getBordersTable() currently at border from ({},{}) to ({},{})",
-            curr_row, curr_col, next_row, next_col));
-    std::int8_t row_incr = getDir(curr_row, next_row);
-    std::int8_t col_incr = getDir(curr_col, next_col);
-    if (row_incr * col_incr != 0) {
-      throw std::runtime_error("getBordersTable() error : diagonal border !");
-    }
-    for (std::int64_t row_idx{static_cast<int64_t>(curr_row) + row_incr},
-         col_idx{static_cast<int64_t>(curr_col) + col_incr};
-         row_idx != next_row || col_idx != next_col;
-         row_idx += row_incr, col_idx += col_incr) {
-      res.cellAt(row_idx, col_idx) = GREEN_CELL;
-    }
-    res.cellAt(curr_row, curr_col) = RED_CELL;
-    res.cellAt(next_row, next_col) = RED_CELL;
-  }
-  return res;
-}
+// TableView<char> getBordersTable(const std::vector<cell_t> &coords) {
+//   coord_num_t max_row{0}, max_col{0};
+//   for (const auto &[col, row] : coords) {
+//     max_row = std::max(max_row, row);
+//     max_col = std::max(max_col, col);
+//   }
+//   auto res = TableView<char>{max_row + 2, max_col + 2};
+//   res.fillWith(EMPTY_CELL);
+//   // auto iter = coords.begin();
+//   for (std::size_t coord_idx{0}; coord_idx < coords.size(); coord_idx++) {
+//     auto &[curr_col, curr_row]{coords[coord_idx]};
+//     auto &[next_col, next_row]{coords[(coord_idx + 1) % coords.size()]};
+//     hlp::printLogEntries(
+//         {"BORD"},
+//         std::format(
+//             "getBordersTable() currently at border from ({},{}) to ({},{})",
+//             curr_row, curr_col, next_row, next_col));
+//     std::int8_t row_incr = getDir(curr_row, next_row);
+//     std::int8_t col_incr = getDir(curr_col, next_col);
+//     if (row_incr * col_incr != 0) {
+//       throw std::runtime_error("getBordersTable() error : diagonal border
+//       !");
+//     }
+//     for (std::int64_t row_idx{static_cast<int64_t>(curr_row) + row_incr},
+//          col_idx{static_cast<int64_t>(curr_col) + col_incr};
+//          row_idx != next_row || col_idx != next_col;
+//          row_idx += row_incr, col_idx += col_incr) {
+//       res.cellAt(row_idx, col_idx) = GREEN_CELL;
+//     }
+//     res.cellAt(curr_row, curr_col) = RED_CELL;
+//     res.cellAt(next_row, next_col) = RED_CELL;
+//   }
+//   return res;
+// }
 
+/*
+  Get set of border cells for rectangle with corners a and b
+ */
 std::unordered_set<cell_t> getRectangleBorders(const cell_t &a,
                                                const cell_t &b) {
   std::unordered_set<cell_t> res{};
@@ -355,6 +365,9 @@ area_t computeArea(const Rectangle &rect) {
 
 using cell_set_t = std::unordered_set<cell_t>;
 
+/*
+  Find minimum table size needed to contain all coords (+ 1-cell margin layer)
+ */
 std::pair<coord_num_t, coord_num_t>
 getTableSize(const std::vector<cell_t> &coords) {
   coord_num_t max_row{0}, max_col{0};
@@ -365,10 +378,12 @@ getTableSize(const std::vector<cell_t> &coords) {
   return {max_row + 2, max_col + 2};
 }
 
+/*
+  Iterate through coords and trace line between each pair of consecutive cells
+ */
 cell_set_t getBordersCells(const std::vector<cell_t> &coords) {
   auto [max_row, max_col] = getTableSize(coords);
   cell_set_t res{};
-  // auto iter = coords.begin();
   for (std::size_t coord_idx{0}; coord_idx < coords.size(); coord_idx++) {
     auto &[curr_col, curr_row]{coords[coord_idx]};
     auto &[next_col, next_row]{coords[(coord_idx + 1) % coords.size()]};
@@ -400,8 +415,8 @@ inline cell_set_t getNeighbors(const cell_t &cell) {
           {row + 1, col},     {row + 1, col + 1}};
 }
 
-inline cell_set_t getNextLayer(const cell_set_t &exclude_set,
-                               const cell_set_t &curr_layer) {
+cell_set_t getNextLayer(const cell_set_t &exclude_set,
+                        const cell_set_t &curr_layer) {
   cell_set_t next_layer{};
   for (const auto &cell : curr_layer) {
     auto neighbors = getNeighbors(cell);
@@ -414,33 +429,64 @@ inline cell_set_t getNextLayer(const cell_set_t &exclude_set,
   return next_layer;
 }
 
+/*
+  Only one candidate (chosen depending on direction)
+ */
+template <typename CustomCellLess>
+cell_set_t getNextLayerDir(const cell_set_t &exclude_set,
+                           const cell_set_t &curr_layer) {
+  using my_set_t = std::set<cell_t, CustomCellLess>;
+  my_set_t next_layer{};
+  for (const auto &cell : curr_layer) {
+    auto neighbors = getNeighbors(cell);
+    for (const auto &neighbor : neighbors) {
+      if (!exclude_set.contains(neighbor)) {
+        next_layer.insert(neighbor);
+      }
+    }
+  }
+  if (next_layer.size() == 0) {
+    return {};
+  }
+  auto &res = *(next_layer.begin());
+  hlp::printLogEntries(
+      {"I"},
+      std::format("getNextLayerDir() - returning ({}, {})", res.row, res.col));
+  return {res};
+}
+
+/*
+  Compute set of cells that constitute edges of general map
+ */
 cell_set_t getEdges(coord_num_t row_count, coord_num_t col_count) {
   cell_set_t edges{};
   for (coord_num_t row_idx{-1}; row_idx <= row_count; row_idx++) {
     edges.insert({{row_idx, -1}, {row_idx, col_count}});
   }
-  for (coord_num_t col_idx{-1}; col_idx <= row_count; col_idx++) {
+  for (coord_num_t col_idx{-1}; col_idx <= col_count; col_idx++) {
     edges.insert({{-1, col_idx}, {row_count, col_idx}});
   }
   return edges;
 }
 
-TableView<char> tableWithArea(const cell_set_t &area, coord_num_t row_count,
-                              coord_num_t col_count) {
-  TableView<char> final_table{row_count, col_count};
-  final_table.fillWith(EMPTY_CELL);
-  for (const auto &[row, col] : area) {
-    final_table.cellAt(row, col) = GREEN_CELL;
-  }
-  return final_table;
-}
+// TableView<char> tableWithArea(const cell_set_t &area, coord_num_t row_count,
+//                               coord_num_t col_count) {
+//   TableView<char> final_table{row_count, col_count};
+//   final_table.fillWith(EMPTY_CELL);
+//   for (const auto &[row, col] : area) {
+//     final_table.cellAt(row, col) = GREEN_CELL;
+//   }
+//   return final_table;
+// }
 
-void displayArea(const cell_set_t &area, coord_num_t row_count,
-                 coord_num_t col_count) {
-  for (coord_num_t row{0}; row < row_count; row++) {
-    for (coord_num_t col{0}; col < row_count; col++) {
-      if (area.contains({row, col})) {
+void displayAreaEff(const cell_set_t &red_area, const cell_set_t &green_area,
+                    coord_num_t row_count, coord_num_t col_count) {
+  for (coord_num_t row{-1}; row <= row_count; row++) {
+    for (coord_num_t col{-1}; col <= col_count; col++) {
+      if (red_area.contains({row, col})) {
         std::cout << RED_CELL;
+      } else if (green_area.contains({row, col})) {
+        std::cout << GREEN_CELL;
       } else {
         std::cout << EMPTY_CELL;
       }
@@ -450,25 +496,232 @@ void displayArea(const cell_set_t &area, coord_num_t row_count,
   std::cout << std::flush;
 }
 
-cell_set_t
-growAreaToMax(const cell_set_t &exclude_set, const cell_set_t &initial_area,
-              const std::pair<coord_num_t, coord_num_t> &row_and_col_count) {
+// cell_set_t
+// growAreaToMax(const cell_set_t &exclude_set, const cell_set_t &initial_area,
+//               const std::pair<coord_num_t, coord_num_t> &row_and_col_count) {
+//   cell_set_t exclude{exclude_set}, final_area{initial_area},
+//       curr_layer{initial_area};
+//   while (curr_layer.size() > 0) {
+//     exclude.insert(curr_layer.begin(), curr_layer.end());
+//     final_area.insert(curr_layer.begin(), curr_layer.end());
+//     hlp::printLogEntries(
+//         {"D", "GROW"},
+//         std::format(
+//             "growAreaToMax() - current area (grew by {}, currently at {}) :",
+//             curr_layer.size(), final_area.size()));
+//     // displayArea(final_area, row_and_col_count.first,
+//     // row_and_col_count.second);
+//     curr_layer = getNextLayer(exclude, curr_layer);
+//   }
+//   hlp::printLogEntries({"GROW"}, "Final area size :", final_area.size());
+//   return final_area;
+// }
+
+template <cell_t::num_t ROW_MUL, cell_t::num_t COL_MUL>
+struct CustomLess {
+  bool operator()(const cell_t &cell_a, const cell_t &cell_b) const {
+    // std::array<coord_num_t, 3> a_scores = {
+    //     ROW_MUL * cell_a.row + COL_MUL * cell_a.col, cell_a.row, cell_a.col};
+    // std::array<coord_num_t, 3> b_scores = {
+    //     ROW_MUL * cell_b.row + COL_MUL * cell_b.col, cell_b.row, cell_b.col};
+    //     return std::lexicographical_compare(a_scores.begin(), a_scores.end(),
+    //                                         b_scores.begin(),
+    //                                         b_scores.end());
+    const coord_num_t a_score{ROW_MUL * cell_a.row + COL_MUL * cell_a.col},
+        b_score{ROW_MUL * cell_b.row + COL_MUL * cell_b.col};
+    return std::less()(a_score, b_score) ||
+           (a_score == b_score && std::less()(cell_a, cell_b));
+  }
+};
+
+struct DirectionalCellOrderings {
+  using TopLeft = CustomLess<1, 1>;
+  using Top = CustomLess<1, 0>;
+  using TopRight = CustomLess<1, -1>;
+  using Left = CustomLess<0, 1>;
+  using Right = CustomLess<0, -1>;
+  using BottomLeft = CustomLess<-1, 1>;
+  using Bottom = CustomLess<-1, 0>;
+  using BottomRight = CustomLess<-1, -1>;
+};
+
+template <typename CustomLess>
+struct CustomCellSetType {
+  using type = std::set<cell_t, CustomLess>;
+};
+
+template <typename CustomLess>
+using CustomCellSetType_t = CustomCellSetType<CustomLess>::type;
+
+struct CustomCellSetTypes {
+  using TopLeft = CustomCellSetType_t<DirectionalCellOrderings::TopLeft>;
+  using Top = CustomCellSetType_t<DirectionalCellOrderings::Top>;
+  using TopRight = CustomCellSetType_t<DirectionalCellOrderings::TopRight>;
+  using Left = CustomCellSetType_t<DirectionalCellOrderings::Left>;
+  using Right = CustomCellSetType_t<DirectionalCellOrderings::Right>;
+  using BottomLeft = CustomCellSetType_t<DirectionalCellOrderings::BottomLeft>;
+  using Bottom = CustomCellSetType_t<DirectionalCellOrderings::Bottom>;
+  using BottomRight =
+      CustomCellSetType_t<DirectionalCellOrderings::BottomRight>;
+};
+
+bool checkIfAreaSpilled(const cell_set_t &area, coord_num_t row_count,
+                        coord_num_t col_count) {
+  for (const auto &[row, col] : area) {
+    if (row * col == 0 || (1 + row - row_count) * (1 + col - col_count) == 0) {
+      hlp::printLogEntries(
+          {"R"}, std::format("Found cell on edge : ({}, {})", row, col));
+      return true;
+    }
+  }
+  return false;
+}
+
+bool checkIfWillSpill(
+    const cell_set_t &exclude_set, const cell_set_t &initial_area,
+    const std::pair<coord_num_t, coord_num_t> &row_and_col_count) {
+  auto &[row_count, col_count] = row_and_col_count;
   cell_set_t exclude{exclude_set}, final_area{initial_area},
       curr_layer{initial_area};
-  while (curr_layer.size() > 0) {
+  std::uint64_t i{0};
+  const auto max_dim =
+      std::max(row_and_col_count.first, row_and_col_count.second);
+  while (curr_layer.size() > 0 && i < max_dim) {
+    if (i % 100 == 0) {
+      if (checkIfAreaSpilled(final_area, row_count, col_count)) {
+        return true;
+      }
+    }
     exclude.insert(curr_layer.begin(), curr_layer.end());
     final_area.insert(curr_layer.begin(), curr_layer.end());
-    hlp::printLogEntries(
-        {"D", "GROW"},
-        std::format(
-            "growAreaToMax() - current area (grew by {}, currently at {}) :",
-            curr_layer.size(), final_area.size()));
+    hlp::printLogEntries({"D", "GROW"},
+                         std::format("growAreaToMax() - current area (grew by "
+                                     "{}, currently at {}, i at {}) :",
+                                     curr_layer.size(), final_area.size(), i));
     // displayArea(final_area, row_and_col_count.first,
     // row_and_col_count.second);
     curr_layer = getNextLayer(exclude, curr_layer);
+    i++;
   }
   hlp::printLogEntries({"GROW"}, "Final area size :", final_area.size());
-  return final_area;
+  return checkIfAreaSpilled(final_area, row_count, col_count);
+}
+
+template <typename CustomCellLess>
+bool checkIfWillSpillEff(
+    const cell_set_t &exclude_set, const cell_set_t &initial_area,
+    const std::pair<coord_num_t, coord_num_t> &row_and_col_count) {
+  auto &[row_count, col_count] = row_and_col_count;
+  cell_set_t exclude{exclude_set}, final_area{initial_area},
+      curr_layer{initial_area};
+  std::uint64_t i{0};
+  const auto max_dim =
+      std::max(row_and_col_count.first, row_and_col_count.second);
+  while (curr_layer.size() > 0 /* && i < max_dim */) {
+    if (i % 100 == 0) {
+      if (checkIfAreaSpilled(final_area, row_count, col_count)) {
+        return true;
+      }
+    }
+    exclude.insert(curr_layer.begin(), curr_layer.end());
+    final_area.insert(curr_layer.begin(), curr_layer.end());
+    hlp::printLogEntries({"D", "GROW"},
+                         std::format("growAreaToMax() - current area (grew by "
+                                     "{}, currently at {}, i at {}) :",
+                                     curr_layer.size(), final_area.size(), i));
+    // displayArea(final_area, row_and_col_count.first,
+    // row_and_col_count.second);
+    curr_layer = getNextLayerDir<CustomCellLess>(exclude, curr_layer);
+    i++;
+  }
+  hlp::printLogEntries({"GROW"}, "Final area size :", final_area.size());
+  return checkIfAreaSpilled(final_area, row_count, col_count);
+}
+
+template <typename T>
+concept IsCellSetType =
+    std::same_as<T, std::set<cell_t, typename T::key_compare>> ||
+    std::same_as<T, std::unordered_set<cell_t, typename T::hasher>>;
+
+template <IsCellSetType CellSetType>
+bool exploreNextCandidate(cell_set_t &exclude_set, CellSetType &candidates,
+                          cell_set_t &final_area) {
+  bool res{false};
+  if (candidates.size() == 0) {
+    return res;
+  }
+  auto chosen_candidate_iter = candidates.begin();
+  auto neighbors = getNeighbors(*chosen_candidate_iter);
+  for (const auto &neighbor : neighbors) {
+    if (!exclude_set.contains(neighbor)) {
+      candidates.insert(neighbor);
+      final_area.insert(neighbor);
+      res = true;
+    }
+  }
+  exclude_set.insert(*chosen_candidate_iter);
+  candidates.erase(chosen_candidate_iter);
+  return res;
+}
+
+template <IsCellSetType CellSetType>
+bool checkIfAreaSpilled_v2(const CellSetType &area, coord_num_t row_count,
+                           coord_num_t col_count) {
+  for (const auto &[row, col] : area) {
+    if (row * col == 0 || (1 + row - row_count) * (1 + col - col_count) == 0) {
+      hlp::printLogEntries(
+          {"R"}, std::format("Found cell on edge : ({}, {})", row, col));
+      return true;
+    }
+  }
+  return false;
+}
+
+template <IsCellSetType CellSetType>
+bool checkIfWillSpillEff_v2(
+    cell_set_t &exclude, CellSetType &candidates,
+    const std::pair<coord_num_t, coord_num_t> &row_and_col_count) {
+  auto &[row_count, col_count] = row_and_col_count;
+  cell_set_t final_area{candidates.begin(), candidates.end()};
+  std::uint64_t i{0};
+  const auto max_dim =
+      std::max(row_and_col_count.first, row_and_col_count.second);
+  while (candidates.size() > 0 /* && i < max_dim */) {
+    if (i % 500 == 0) {
+      if (checkIfAreaSpilled_v2<cell_set_t>(final_area, row_count, col_count)) {
+        hlp::printLogEntries(
+            {"I"},
+            std::format(
+                "checkIfWillSpillEff_v2() - Found spill at iteration n°{}", i));
+        return true;
+      }
+    }
+    // exclude.insert(candidates.begin(), candidates.end());
+    // final_area.insert(candidates.begin(), candidates.end());
+    hlp::printLogEntries(
+        {"D", "GROW"},
+        std::format("checkIfWillSpillEff_v2() - iteration n°{} - candidates "
+                    "count : {}, final area size : {}",
+                    i, candidates.size(), final_area.size()));
+    // displayArea(final_area, row_and_col_count.first,
+    // row_and_col_count.second);
+    bool found_new_candidates =
+        exploreNextCandidate<CellSetType>(exclude, candidates, final_area);
+    i++;
+  }
+  hlp::printLogEntries({"GROW"}, "Final area size :", final_area.size());
+  // displayAreaEff(final_area, exclude, row_count, col_count);
+  return checkIfAreaSpilled_v2<cell_set_t>(final_area, row_count, col_count);
+}
+
+bool checkIfRectangleIsSplit(const Rectangle &rect,
+                             const std::vector<cell_t> &coords) {
+  for (std::size_t i{0}; i < coords.size(); i++) {
+    auto &corner_a = coords.at(i);
+    auto &corner_b = coords.at((i + 1) % coords.size());
+    auto &[row_a, col_a] = corner_a;
+    auto &[row_b, col_b] = corner_b;
+  }
 }
 
 int main(int argc, char *argv[]) {
@@ -554,10 +807,26 @@ int main(int argc, char *argv[]) {
   auto le_edges = getEdges(le_rc, le_cc);
   le_borders.insert(le_edges.begin(), le_edges.end());
   hlp::printLogEntries({"I"}, "About to call growAreaToMax()");
-  auto le_test_area =
-      growAreaToMax(le_borders, {{70000, 2000}}, {le_rc, le_cc});
+  // auto le_test_area =
+  //     checkIfWillSpill(le_borders, {{70000, 2000}}, {le_rc, le_cc});
+  // auto [start_row, start_col] = std::make_pair<coord_num_t>(1, 1);
+  auto [start_row, start_col] =
+      std::make_pair<coord_num_t>(97498 + 1, 51566 - 1);
+  // auto le_test_area = checkIfWillSpillEff<DirectionalCellOrderings::TopLeft>(
+  //     le_borders, {{start_row, start_col}}, {le_rc, le_cc});
+  CustomCellSetTypes::TopLeft le_candidates = {{start_row, start_col}};
+  auto will_spill = checkIfWillSpillEff_v2<
+      CustomCellSetType_t<DirectionalCellOrderings::TopLeft>>(
+      le_borders, le_candidates, std::make_pair(le_rc, le_cc));
+  std::cout << "le_test_area : " << std::boolalpha << will_spill << std::endl;
 
-  hlp::printLogEntries({"I"}, tableWithArea(le_test_area, le_rc, le_cc).str());
+  // hlp::printLogEntries({"I"}, tableWithArea(le_test_area, le_rc,
+  // le_cc).str());
 
   std::cout << "res_area (Part 2) : " << res_area << std::endl;
+  // CustomCellSetType_t<DirectionalCellOrderings::TopLeft> candidates_set = {
+  //     {start_row, start_col}};
+  // cell_set_t final_area{};
+  // exploreBestCandidate<CustomCellSetType_t<DirectionalCellOrderings::TopLeft>>(
+  //     le_borders, candidates_set, final_area);
 }

@@ -123,3 +123,24 @@ of time + memory. It now runs a lot faster (grew area from 1 to like 2 million c
 but that's probably still not near fast enough, considering the rectangle I found in Part 1 was about
 4 billion cells (and it already took a lot longer than just a few seconds to get to 7 millions, for
 example).
+\
+Update : after some long thought, I think I have an idea :
+\
+- Go through the set of `Rectangle`'s orderd by descending area
+- For each on try to grow the area to check if it's all "inside" the borders, except :
+  - here's the catch : instead of growing the area in all directions, I modify
+  `getNextlayer()` so it returns a set that only contains the "northwest"-most cell (or whichever of the
+  three other "diagonal" directions I feel like using). This makes computation much faster, and stills
+  allows the program  to go "look for" the edges of the general map.
+- If it finds an edge of the general map, move on to next `Rectangle`, otherwise we found our largest
+eligible `Rectangle`
+
+### 2025/12/16
+Update : small idea for improvement : try to go in all four directions, to avoid getting "stuck"
+if we happen to on the wrong side of our map (too complex to explain properly with words, but whatever).
+\
+Anyway, I've been working on this on and off for a few days, and I thought of a much better approach :
+Just check, for each rectangle, wether or not a line between consecutive boxes - or set of such lines -
+"splits" it in two. This also solves the problem of getting "stuck"/spending too long going in a
+direction. I still wanted to work on implementing my previous idea, if only for personal satisfaction,
+but I'm now switching to the latest approach, which should be much quicker to implement + to execute.
