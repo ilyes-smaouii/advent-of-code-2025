@@ -153,3 +153,7 @@ especially considering I made mistakes on stuff that was much simpler (e.g. forg
 \
 Anyway, Day 09 finished. I might wanna clean up my code a little - or leave it as is, for future reference
 -, and then I'm moving on to Day 10.
+
+### 2025/12/19
+Did Part 1 of Day 10 yesterday, and looked at instructions for Part 2. I haven't really figured out
+how to approach this yet.
