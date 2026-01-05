@@ -157,3 +157,23 @@ Anyway, Day 09 finished. I might wanna clean up my code a little - or leave it a
 ### 2025/12/19
 Did Part 1 of Day 10 yesterday, and looked at instructions for Part 2. I haven't really figured out
 how to approach this yet.
+
+
+### 2025/12/25
+Update : got a flu for a few days + other life stuff. I even had a half-awake fever dream about this
+problem, trying to figure out how to approach it, and I still don't see it. I suggest it could be
+related to the knapsack problem (I think that's the name ?) we'd studied about in school, but I don't
+remember enough about it, and I'm trying to finish this entire AoC without doing any research, so for
+now I'm still trying to figure it out on my own - even if that means re-figuring some combinatorial math
+theorems on my own.
+\
+Update : cheated a little and went online to remind myself of the exact definition of the knapsack problem.
+
+### 2026/01/04
+Update : didn't really touch the code for a few days, and I didn't really have much of an idea how to
+approach this, but today I went back to it, and I think I could try to use a graph-based approach, so
+I might not have to use Combinatorial Optimization after all.
+
+### 2026/01/05
+Update : started writing code, but I didn't finish. A little busy right now so maybe I'll finish later,
+but I already have the ideas in mind, it should just be a matter of implementing it + some trial and error.

@@ -1,3 +1,4 @@
+import numpy as np
 import helpers
 
 # open file, collect content
@@ -64,7 +65,7 @@ def countOnes(bin_num):
 def findCandidatesAux(buttons, perm):
   res = 0
   i = 0
-  for i in range(len(buttons)) :
+  for i in range(len(buttons)):
     if (perm % 2 == 1):
       res ^= buttons[i]
     perm //= 2
@@ -91,9 +92,9 @@ def findMinButtonPresses(diagram, buttons):
   return (sol, min_presses)
 
 
-def findTotalMin(lines) :
+def findTotalMin(lines):
   total = 0
-  for line in lines :
+  for line in lines:
     diagram, buttons = parseDiagram(line), parseButtons(line)
     total += findMinButtonPresses(diagram, buttons)[1]
   return total
@@ -102,3 +103,72 @@ def findTotalMin(lines) :
 # PART 2
 ######
 
+
+def tryButtonPress(button_bin_rep, press_count, diagram_size):
+  res = np.zeros((diagram_size), dtype=np.uint)
+  i = 0
+  while button_bin_rep > 0:
+    res[i] += press_count * (button_bin_rep % 2)
+    i += 1
+    button_bin_rep //= 2
+  return res
+
+
+def tryButtonPresses(buttons_bin_rep, press_counts, diagram_size):
+  res = np.zeros((diagram_size), dtype=np.uint)
+  if len(buttons_bin_rep) != len(press_counts):
+    raise RuntimeError(
+      "tryButtonPresses() error : buttons and press_counts should have the same length !")
+  for i in range(len(buttons_bin_rep)):
+    res += tryButtonPress(buttons_bin_rep[i], press_counts[i])
+  return res
+
+
+bt = 0b1101
+pc = 3
+dsz = 4
+
+
+def findLargestButton(buttons_bin_rep):
+  max_count = 0
+  res = 0
+  for button_bin_rep in buttons_bin_rep:
+    curr_count = countOnes(button_bin_rep)
+    if curr_count > max_count:
+      max_count = curr_count
+      res = button_bin_rep
+  return res
+
+
+def estimateToGoal(largest_button_size, joltage_levels, goal_joltage_levels):
+  total_diff = sum(goal_joltage_levels - joltage_levels)
+  return total_diff / largest_button_size
+
+
+def findMinButtonPresses(buttons_bin_rep, goal_joltage_levels):
+  # data structure : {press_counts : (press_counts_sum, joltage_levels, estimate_to_goal)}
+  largest_button_size = countOnes(findLargestButton(buttons_bin_rep))
+  light_count = len(goal_joltage_levels)
+  start_joltage_levels = np.zeros((light_count), dtype=np.uint)
+  start_presses = tuple(np.zeros((light_count), dtype=np.uint8))
+  candidates = {start_presses: {"total_presses": 0, "jolt_levels": start_joltage_levels, "est_to_goal": estimateToGoal(
+    largest_button_size, start_joltage_levels, goal_joltage_levels)}}
+  while (len(candidates) > 0):
+    # find best candidate, then :
+    best_candidate = next(iter(candidates.items()))
+    best_score = best_candidate[1]["total_presses"] + best_candidate[1]["est_to_goal"]
+    for candidate in candidates:
+      curr_score = candidate[1]["total_presses"] + candidate[1]["est_to_goal"]
+    # if best candidate works :
+    #   return result
+    # else :
+    #   add neighbors using heuristic (remember : each candidate has to be < goal !)
+    #   remove best candidate from candidates
+    pass
+  # no working candidate --> raise error ?
+  pass
+
+# node : binary
+# heuristic : countOnes(node) + (countOnes(goal) - countOnes(current)) // countOnes(biggest_button)
+# candidates : {count : }
+# start : 0b00000

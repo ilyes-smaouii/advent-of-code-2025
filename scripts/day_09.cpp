@@ -764,7 +764,7 @@ area_t computeArea(const Rectangle &rect) {
 bool checkIfRangesIntersect(const Range &range_a, const Range &range_b) {
   auto &[min_a, max_a] = range_a;
   auto &[min_b, max_b] = range_b;
-  return (min_a < max_b && max_a > min_b);
+  return (min_a <= max_b && max_a >= min_b);
 }
 
 bool checkIfRectangleIsSplitAux(const Rectangle &rect, const cell_t &cell_a,
@@ -778,10 +778,10 @@ bool checkIfRectangleIsSplitAux(const Rectangle &rect, const cell_t &cell_a,
       max_line_col{std::max(col_cell_a, col_cell_b)};
   const coord_num_t min_line_row{std::min(row_cell_a, row_cell_b)},
       min_line_col{std::min(col_cell_a, col_cell_b)};
-  const coord_num_t max_rect_row{std::max(row_rect_a, row_rect_b)},
-      max_rect_col{std::max(col_rect_a, col_rect_b)};
-  const coord_num_t min_rect_row{std::min(row_rect_a, row_rect_b)},
-      min_rect_col{std::min(col_rect_a, col_rect_b)};
+  const coord_num_t max_rect_row{std::max(row_rect_a, row_rect_b) - 1},
+      max_rect_col{std::max(col_rect_a, col_rect_b) - 1};
+  const coord_num_t min_rect_row{std::min(row_rect_a, row_rect_b) + 1},
+      min_rect_col{std::min(col_rect_a, col_rect_b) + 1};
   const Range range_line_row{min_line_row, max_line_row},
       range_line_col{min_line_col, max_line_col};
   const Range range_rect_row{min_rect_row, max_rect_row},
