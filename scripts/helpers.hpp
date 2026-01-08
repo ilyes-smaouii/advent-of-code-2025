@@ -1,9 +1,11 @@
 #pragma once
 
 #include <cstddef>
+// #include <cstdint>
 #include <iostream>
-#include <istream>
+// #include <istream>
 #include <memory>
+#include <ostream>
 #include <sstream>
 #include <string>
 #include <unordered_map>
@@ -36,15 +38,40 @@ std::vector<std::vector<char>>
 getFileContentAsTable(const std::string &filename);
 
 template <typename T>
+std::ostream &operator<<(std::ostream &os, const std::vector<T> &vec) {
+  os << "vec(";
+  for (const auto &e : vec) {
+    os << e << ",";
+  }
+  os << ")";
+  return os;
+}
+
+template <typename T>
 std::string vectorToString(const std::vector<T> &vec) {
   std::stringstream string_str{};
+  string_str << "vec(";
   for (const auto &e : vec) {
-    string_str << e << ", ";
+    string_str << e << ",";
   }
-  auto str = string_str.str();
-  str.pop_back();
-  return str;
+  string_str << ")";
+  // auto str = string_str.str();
+  // str.pop_back();
+  return string_str.str();
 }
+
+// inline std::ostream &
+// operator<<(std::ostream &os,
+//            const std::vector<std::vector<std::uint8_t>> &buttons) {
+//   for (const auto &button : buttons) {
+//     os << '{';
+//     for (const auto &light_idx : button) {
+//       os << static_cast<int>(light_idx) << ", ";
+//     }
+//     os << "} ";
+//   }
+//   return os;
+// }
 
 using cat_t = std::string;
 using msg_t = std::string;

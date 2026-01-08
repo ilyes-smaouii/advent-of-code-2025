@@ -62,6 +62,11 @@ getFileContentAsTable(const std::string &filename) {
   return final_table;
 }
 
+std::ostream& operator<<(std::ostream& os, const std::uint8_t& some_int) {
+  os << static_cast<std::uint16_t>(some_int);
+  return os;
+}
+
 std::string LogEntry::toStr() const {
   std::string res;
   // std::cout << "LogEntry::toStr() called with cats : " <<

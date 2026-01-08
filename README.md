@@ -177,3 +177,12 @@ I might not have to use Combinatorial Optimization after all.
 ### 2026/01/05
 Update : started writing code, but I didn't finish. A little busy right now so maybe I'll finish later,
 but I already have the ideas in mind, it should just be a matter of implementing it + some trial and error.
+
+### 2026/01/08
+Update : tried implementing it, and it worked on test input from website, but it's too slow to execute
+on actual input. In an effort to make it faster, I'm coding it in C++, which among other things allows for
+sorted maps through the STL's `std::map`. Also the opportunity for me to try to write a parsing function
+using just basic C++ operations.
+\
+Update : getting a little lost in my own thoughts and code here, maybe I should stop for now and come back
+later.

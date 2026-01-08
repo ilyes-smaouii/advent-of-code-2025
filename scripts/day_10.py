@@ -104,8 +104,16 @@ def findTotalMin(lines):
 ######
 
 
+def parseJoltageLevels(line_str):
+  jolts_str = line_str.split(" ")[-1][1:-1].split(",")
+  res = np.zeros((len(jolts_str)), dtype=np.uint32)
+  for i in range(len(jolts_str)):
+    res[i] = int(jolts_str[i])
+  return res
+
+
 def tryButtonPress(button_bin_rep, press_count, diagram_size):
-  res = np.zeros((diagram_size), dtype=np.uint)
+  res = np.zeros((diagram_size), dtype=np.uint32)
   i = 0
   while button_bin_rep > 0:
     res[i] += press_count * (button_bin_rep % 2)
@@ -115,7 +123,7 @@ def tryButtonPress(button_bin_rep, press_count, diagram_size):
 
 
 def tryButtonPresses(buttons_bin_rep, press_counts, diagram_size):
-  res = np.zeros((diagram_size), dtype=np.uint)
+  res = np.zeros((diagram_size), dtype=np.uint32)
   if len(buttons_bin_rep) != len(press_counts):
     raise RuntimeError(
       "tryButtonPresses() error : buttons and press_counts should have the same length !")
@@ -140,35 +148,108 @@ def findLargestButton(buttons_bin_rep):
   return res
 
 
-def estimateToGoal(largest_button_size, joltage_levels, goal_joltage_levels):
+def estimateDistanceToGoal(largest_button_size, joltage_levels, goal_joltage_levels):
   total_diff = sum(goal_joltage_levels - joltage_levels)
   return total_diff / largest_button_size
 
 
-def findMinButtonPresses(buttons_bin_rep, goal_joltage_levels):
+def findMinButtonPressesAux(buttons_bin_rep, goal_joltage_levels):
+  """
+  @param buttons_bin_rep : tuple/list of binary numbers representing buttons
+  @param goal_joltage_levels : numpy array representing goal joltage levels
+  """
   # data structure : {press_counts : (press_counts_sum, joltage_levels, estimate_to_goal)}
-  largest_button_size = countOnes(findLargestButton(buttons_bin_rep))
+  largest_button = findLargestButton(buttons_bin_rep)
+  largest_button_size = countOnes(largest_button)
+  goal_jolt_sum = sum(goal_joltage_levels)
+  # initial_estimate = goal_jolt_sum // largest_button_size
+  button_count = len(buttons_bin_rep)
   light_count = len(goal_joltage_levels)
-  start_joltage_levels = np.zeros((light_count), dtype=np.uint)
-  start_presses = tuple(np.zeros((light_count), dtype=np.uint8))
-  candidates = {start_presses: {"total_presses": 0, "jolt_levels": start_joltage_levels, "est_to_goal": estimateToGoal(
-    largest_button_size, start_joltage_levels, goal_joltage_levels)}}
+  start_joltage_levels = np.zeros((light_count), dtype=np.uint32)
+  start_presses = tuple(np.zeros((button_count), dtype=np.uint32))
+  # candidates = {start_presses: {"total_presses": 0, "jolt_levels": start_joltage_levels, "est_to_goal": estimateDistanceToGoal(
+  #   largest_button_size, start_joltage_levels, goal_joltage_levels)}}
+  candidates = {start_presses: {"total_presses": 0,
+                                "jolt_levels": start_joltage_levels, "est_to_goal": goal_jolt_sum}}
+  explored = dict()
+  iter_count = 0
   while (len(candidates) > 0):
+    iter_count += 1
+    helpers.print_log_entries(
+      "iteration n°{}".format(iter_count), log_cats={"I"})
     # find best candidate, then :
     best_candidate = next(iter(candidates.items()))
-    best_score = best_candidate[1]["total_presses"] + best_candidate[1]["est_to_goal"]
-    for candidate in candidates:
+    best_score = best_candidate[1]["total_presses"] + \
+        best_candidate[1]["est_to_goal"]
+    # best_score = best_candidate[1]["est_to_goal"]
+    for candidate in candidates.items():
       curr_score = candidate[1]["total_presses"] + candidate[1]["est_to_goal"]
+      # curr_score = candidate[1]["est_to_goal"]
+      if curr_score < best_score:
+        best_candidate = candidate
+        best_score = curr_score
+    attempt = best_candidate[1]["jolt_levels"]
     # if best candidate works :
     #   return result
+    if (attempt == goal_joltage_levels).all():
+      return best_candidate
     # else :
     #   add neighbors using heuristic (remember : each candidate has to be < goal !)
     #   remove best candidate from candidates
-    pass
+    else:
+      explored[best_candidate[0]] = best_candidate[1]
+      del candidates[best_candidate[0]]
+      for i in range(button_count):
+        curr_neighbor = np.array(best_candidate[0], dtype=np.uint32)
+        curr_neighbor[i] += 1
+        curr_total_presses = best_candidate[1]["total_presses"] + 1
+        curr_jolt_levels = best_candidate[1]["jolt_levels"] + \
+            tryButtonPress(buttons_bin_rep[i], 1, light_count)
+        curr_est_to_goal = estimateDistanceToGoal(
+          largest_button_size, curr_jolt_levels, goal_joltage_levels)
+        curr_est_to_goal = best_candidate[1]["est_to_goal"] - \
+            countOnes(buttons_bin_rep[i])
+        if (curr_jolt_levels <= goal_joltage_levels).all() and tuple(curr_neighbor) not in explored:
+          candidates[tuple(curr_neighbor)] = {
+              "total_presses": curr_total_presses, "jolt_levels": curr_jolt_levels, "est_to_goal": curr_est_to_goal}
   # no working candidate --> raise error ?
-  pass
+  raise RuntimeError(
+    "findMinButtonPressesAux() error - didn't find any solution !")
 
 # node : binary
 # heuristic : countOnes(node) + (countOnes(goal) - countOnes(current)) // countOnes(biggest_button)
 # candidates : {count : }
 # start : 0b00000
+
+
+helpers.LOG_DICT["I"][0] = True
+
+
+def findMinTotalButtonPresses(lines):
+  res = 0
+  for line in lines:
+    buttons_bin_rep = parseButtons(line)
+    goal_jolt = parseJoltageLevels(line)
+    press_count = findMinButtonPressesAux(buttons_bin_rep, goal_jolt)[
+        1]["total_presses"]
+    helpers.print_log_entries(
+      "Press count : {}".format(press_count), log_cats={"I"})
+    res += press_count
+  return res
+
+
+for line in le_test_lines:
+  gj = parseJoltageLevels(line)
+  bts = parseButtons(line)
+  print(findMinButtonPressesAux(bts, gj))
+
+f = findMinTotalButtonPresses
+
+
+def findMinButtonPresses(line):
+  bts = parseButtons(line)
+  gj = parseJoltageLevels(line)
+  return findMinButtonPressesAux(bts, gj)
+
+
+fl = findMinButtonPresses
