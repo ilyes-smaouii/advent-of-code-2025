@@ -186,3 +186,7 @@ using just basic C++ operations.
 \
 Update : getting a little lost in my own thoughts and code here, maybe I should stop for now and come back
 later.
+
+### 2026/01/09
+Seems to work on some test data, but it's still way too inefficient to actually find the solutions on most
+input data.
